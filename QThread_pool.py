@@ -1,4 +1,12 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
 from PyQt4 import QtCore
+import spynner
 from SocketServer import ThreadingMixIn
 import SocketServer
 from Queue import Queue
@@ -65,10 +73,13 @@ class ThreadPoolMixIn(ThreadingMixIn):
 class EchoRequestHandler(SocketServer.BaseRequestHandler):
 
     def handle(self):
-        # Echo the back to the client
-        data = self.request.recv(1024)
-        time.sleep(5)
-        self.request.send(data.upper())
+        # Echo the message back to the client
+        url = self.request.recv(1024)
+        browser = spynner.Browser()
+        browser.load(url, load_timeout=120)
+        ret = browser.webframe.toHtml()
+        ret = str(ret).replace("\00","")
+        self.request.send(ret)
         return
 
 
@@ -90,6 +101,9 @@ if __name__ == '__main__':
         httpd = ThreadedServer(server_address, HandlerClass)
 
         sa = httpd.socket.getsockname()
+        browser = spynner.Browser()  # just init all the things
+        browser.load('http://google.com/', load_timeout=120)
+        del browser
         print "Serving HTTP on", sa[0], "port", sa[1], "..."
         httpd.serve_forever()
     app = QtCore.QCoreApplication([])
