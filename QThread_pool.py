@@ -30,19 +30,23 @@ class ThreadPoolMixIn(ThreadingMixIn):
             def run(this):
                 print 'Qthread is running'
                 while True:
+                    print 'got request'
                     ThreadingMixIn.process_request_thread(self, *self.requests.get())
-
+        threads = []
         for x in range(self.numThreads):
             #t = threading.Thread(target = self.process_request_thread)
             #t.setDaemon(1)
             #t.start()
             thread = AThread()
             thread.start()
+            threads.append(thread)
+        #for x in threads:
+        #    x.wait()
 
         # server main loop
         while True:
             self.handle_request()
-            
+        print 'wtf'    
         self.server_close()
 
     
@@ -54,6 +58,7 @@ class ThreadPoolMixIn(ThreadingMixIn):
             request, client_address = self.get_request()
         except socket.error:
             return
+        print 'working'
         if self.verify_request(request, client_address):
             self.requests.put((request, client_address))
 
